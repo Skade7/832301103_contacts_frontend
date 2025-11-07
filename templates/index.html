@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}首页{% endblock %}
+
+{% block content %}
+<div class="profile">
+    <h3>我的头像</h3>
+    <img src="{{ url_for('static', filename='uploads/' + (current_user.avatar or 'default.png')) }}" 
+         alt="头像" class="profile-avatar">
+    <form action="{{ url_for('upload_avatar') }}" method="POST" enctype="multipart/form-data">
+        <input type="file" name="avatar" accept="image/*" required>
+        <button type="submit" class="btn">上传头像</button>
+    </form>
+</div>
+
+<div class="search-bar">
+    <form method="GET">
+        <input type="text" name="search" placeholder="搜索姓名或电话..." 
+               value="{{ request.args.get('search', '') }}">
+        <button type="submit" class="btn">搜索</button>
+    </form>
+</div>
+
+<div class="contact-form">
+    <h3>{% if edit_id %}编辑联系人{% else %}添加联系人{% endif %}</h3>
+    <form method="POST" action="{{ url_for('edit_contact', contact_id=edit_id) if edit_id else url_for('add_contact') }}">
+        {{ (edit_form if edit_id else form).hidden_tag() }}
+        <div class="form-group">
+            {{ (edit_form if edit_id else form).name.label }}<br>
+            {{ (edit_form if edit_id else form).name(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ (edit_form if edit_id else form).phone.label }}<br>
+            {{ (edit_form if edit_id else form).phone(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ (edit_form if edit_id else form).email.label }}<br>
+            {{ (edit_form if edit_id else form).email(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ (edit_form if edit_id else form).address.label }}<br>
+            {{ (edit_form if edit_id else form).address(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ (edit_form if edit_id else form).submit(class="btn") }}
+            {% if edit_id %}
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">取消</a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div class="contact-list">
+    <h3>联系人列表 ({{ contacts|length }})</h3>
+    {% if contacts %}
+        <table>
+            <thead>
+                <tr>
+                    <th>姓名</th>
+                    <th>电话</th>
+                    <th>邮箱</th>
+                    <th>地址</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contact in contacts %}
+                <tr>
+                    <td>{{ contact.name }}</td>
+                    <td>{{ contact.phone }}</td>
+                    <td>{{ contact.email or '-' }}</td>
+                    <td>{{ contact.address or '-' }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('edit_contact', contact_id=contact.id) }}" class="btn btn-sm">编辑</a>
+                        <a href="{{ url_for('delete_contact', contact_id=contact.id) }}" 
+                           class="btn btn-sm btn-danger" 
+                           onclick="return confirm('确定要删除吗？')">删除</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty-message">暂无联系人，添加一个吧！</p>
+    {% endif %}
+</div>
+{% endblock %}
